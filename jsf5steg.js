@@ -702,7 +702,7 @@ var jsf5steg = (function(){
 		if(self.frames[0].components.length != 1){
             writeWord(0x01A2); // length
         }else{
-            writeWord(0x0D2p); // length
+            writeWord(0x0D2); // length
         }
 
 		writeByte(0); // HTYDCinfo
@@ -743,9 +743,6 @@ var jsf5steg = (function(){
 		writeWord(0xFFDA); // marker
 		writeWord(6 + self.frames[0].components.length * 2);   // length
 		writeByte(self.frames[0].components.length); // nrofcomponents
-//writeWord(12);
-//writeByte(3);
-// FIXME: write real SOS header. Now it is fixed for YUV format!
 
 		for (var i = 0; i < self.frames[0].components.length; i++) {
 			var c = self.frames[0].components[i];
@@ -756,14 +753,6 @@ var jsf5steg = (function(){
                 writeByte(0x11);
             }
 		};
-
-/*		writeByte(1); // IdY
-		writeByte(0); // HTY
-		writeByte(2); // IdU
-		writeByte(0x11); // HTU
-		writeByte(3); // IdV
-		writeByte(0x11); // HTV
-*/
 
 		writeByte(0); // Ss
 		writeByte(0x3f); // Se
@@ -847,16 +836,7 @@ var jsf5steg = (function(){
 		
 		bytenew=0;
 		bytepos=7;
-		
-/*		this.encode.displayName = "_encode_";
 
-		var imageData = image.data;
-		var width = image.width;
-		var height = image.height;
-
-		var quadWidth = width*4;
-		var tripleWidth = width*3;*/
-		
 		var x, y = 0;
 		var j = 0;
 		var r, g, b;
