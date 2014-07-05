@@ -45,12 +45,14 @@ var arrayBufferDataUri = function(raw) {
     return base64;
 };
 
-
-
+var container = null, embeddata = null;
+var iv = [];
 var j = new jsf5steg();
 
-var handleFileSelect = function(evt) {
-	"use strict";
+var handleContainerSelect = function(evt) {
+    "use strict";
+
+    container = null;
 
     var files = evt.target.files; // FileList object
 
@@ -59,35 +61,117 @@ var handleFileSelect = function(evt) {
 
         reader.onload = (function(theFile) {
             return function(e) {
-                $('#outputdiv').empty();
-            	var time_start = new Date().getTime();
-                try{
-                    j.parse(e.target.result);
-                } catch(e){
-                    console.log(e);
-                    $('#outputdiv').append('<b style="color: #f00">JPEG DECODE FAILED!</b>');
-                    return false;
-                }
-                var duration = new Date().getTime() - time_start;
-    			console.log('Unpack '+ duration + 'ms');
-
-    			var time_start = new Date().getTime();
-                var pck = j.pack();
-                var duration = new Date().getTime() - time_start;
-    			console.log('Repack '+ duration + 'ms');
-    			var jpegDataUri = 'data:image/jpeg;base64,' + arrayBufferDataUri(pck);
-    			$('#outputdiv').append('<a href="'+jpegDataUri+'" download="repack.jpg">download repacked image</a><br/>');
-    			$('#outputdiv').append('<img src="'+jpegDataUri+'">');
-    			//console.log(jpegDataUri);
+                    container = e.target.result;
             };
         })(files[0]);
-
         reader.readAsArrayBuffer(files[0]);
+    }else{
+        alert('Please select image!');
     }
 };
+
+var handleDataSelect = function(evt) {
+    "use strict";
+
+    embeddata = null;
+
+    var files = evt.target.files; // FileList object
+    var reader = new FileReader();
+
+    reader.onload = (function(theFile) {
+        return function(e) {
+                embeddata = e.target.result;
+        };
+    })(files[0]);
+
+    reader.readAsArrayBuffer(files[0]);
+};
+
+var doEmbed = function(evt) {
+	"use strict";
+    $('#outputdiv').empty();
+
+    if(iv.length == 0){
+        var buffer = new ArrayBuffer(256);
+        var int32View = new Int32Array(buffer);
+        var Uint8View = new Uint8Array(buffer);
+
+        var key_from_pass = sjcl.misc.pbkdf2($('input[name="passwd"]').val(), $('input[name="passwd"]').val(), 1000, 256 * 8);
+
+        int32View.set(key_from_pass);
+
+        for (var i = 0; i < 256; i++) {
+            iv[i] = Uint8View[i];
+        }
+    }
+
+
+	var time_start = new Date().getTime();
+    try{
+        j.parse(container);
+    } catch(e){
+        $('#outputdiv').append('<b style="color: #f00">JPEG DECODE FAILED!</b>');
+        return false;
+    }
+    var duration = new Date().getTime() - time_start;
+	console.log('Unpack '+ duration + 'ms');
+
+    j.f5embed(embeddata,iv);
+
+	var time_start = new Date().getTime();
+    var pck = j.pack();
+    var duration = new Date().getTime() - time_start;
+	console.log('Repack '+ duration + 'ms, size: ' + pck.length);
+	var jpegDataUri = 'data:image/jpeg;base64,' + arrayBufferDataUri(pck);
+	$('#outputdiv').append('<a href="'+jpegDataUri+'" download="repack.jpg">download repacked image</a><br/>');
+	$('#outputdiv').append('<img src="'+jpegDataUri+'">');
+	//console.log(jpegDataUri);
+};
+
+var doExtract = function(evt) {
+    "use strict";
+    $('#outputdiv').empty();
+
+    if(iv.length == 0){
+        var buffer = new ArrayBuffer(256);
+        var int32View = new Int32Array(buffer);
+        var Uint8View = new Uint8Array(buffer);
+
+        var key_from_pass = sjcl.misc.pbkdf2($('input[name="passwd"]').val(), $('input[name="passwd"]').val(), 1000, 256 * 8);
+
+        int32View.set(key_from_pass);
+
+        for (var i = 0; i < 256; i++) {
+            iv[i] = Uint8View[i];
+        }
+    }
+
+
+    var time_start = new Date().getTime();
+    try{
+        j.parse(container);
+    } catch(e){
+        $('#outputdiv').append('<b style="color: #f00">JPEG DECODE FAILED!</b>');
+        return false;
+    }
+    var duration = new Date().getTime() - time_start;
+    console.log('Unpack '+ duration + 'ms');
+
+    var hidData = j.f5extract(iv);
+    var hidDataUri = 'data:application/octet-stream;base64,' + arrayBufferDataUri(hidData);
+
+    $('#outputdiv').append('<a href="'+hidDataUri+'" download="data.dat">download extracted data</a><br/>');
+};
+
 
 $(function($){
     "use strict";
 
-    $('#image-select').on('change', handleFileSelect);
+    $('#image-select').on('change', handleContainerSelect);
+    $('#data-select').on('change', handleDataSelect);
+
+    $('#do_embed').on('click', doEmbed);
+    $('#do_extract').on('click', doExtract);
+
+    $('input[name="passwd"]').on('change', function(){iv = [];});
 });

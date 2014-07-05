@@ -879,6 +879,375 @@ var jsf5steg = (function(){
 		return byteout	
 	};
 
+    var Permutaion = function(prng, size){
+        this.prng = prng;
+        this.ids = Array(size);
+
+        //this.ids[0] = -1;
+        for (var i = 0; i < size; i++) this.ids[i] = i;
+
+        var max_random = this.ids.length;
+        for (var i = 0; i < this.ids.length; i++) {
+            var random_index = this.get_next(max_random);
+            max_random--;
+            var tmp = this.ids[random_index];
+            this.ids[random_index] = this.ids[max_random];
+            this.ids[max_random] = tmp;
+        }
+    };
+
+    Permutaion.prototype.get_next = function(max){
+        var ret_val = this.prng.next() | this.prng.next() << 8 | 
+                this.prng.next() << 16 | this.prng.next() << 24;
+        ret_val %= max;
+        if(ret_val < 0) ret_val += max;
+        return ret_val;
+    };
+
+    Permutaion.prototype.get_shuffled = function(i){
+        return this.ids[i];
+    };
+
+    constructor.prototype.f5embed = function(embedAB, iv){
+        var data = new Uint8Array(embedAB);
+        var coeff = this.frames[0].components[0].blocks;
+        var coeff_count = coeff.length;
+        console.log('got ' + coeff_count + ' DCT AC/DC coefficients');
+
+        var _changed = 0, _embedded = 0, _examined = 0, _expected = 0, _one = 0, _large = 0, _thrown = 0, _zero = 0, shuffled_index = 0,
+            changed, usable, i, n, k, ii;
+        
+        for (i = 0; i < coeff.length; i++) {
+            if(i % 64 == 0) continue;
+
+            if(coeff[i] == 1 || coeff[i] == -1){
+                _one++;
+            }
+
+            if(coeff[i] == 0){
+                _zero++;
+            }
+        };
+
+        _large = coeff_count - _zero - _one - coeff_count / 64;
+        _expected = Math.floor(_large + (0.49 * _one));
+
+        console.log('one=' + _one);
+        console.log('large=' + _large);
+
+        console.log('expected capacity: '+Math.floor(_expected / 8)+' bytes');
+        console.log('expected capacity with');
+
+        for (i = 1; i < 8; i++) {
+            n = (1 << i) - 1;
+            changed = _large - _large % (n + 1);
+            changed = (changed + _one + _one / 2 - _one / (n + 1)) / (n + 1);
+            
+            usable = (_expected * i / n - _expected * i / n % n) / 8;
+            if(usable == 0) break;
+            console.log( (i==1 ? 'default' : '(1, '+n+', '+i+')') + ' code: ' + Math.floor(usable) + ' bytes (efficiency: '+(usable * 8 / changed).toFixed(2)+' bits per change)');
+        };
+        
+        if(data && data.length != 0){
+            console.log('permutation starts');
+            var prng = prng_newstate();
+            prng.init(iv);
+            var pm = new Permutaion(prng, coeff_count);
+
+            var next_bit_to_embed = 0,
+                byte_to_embed = data.length,
+                data_idx = 0,
+                available_bits_to_embed = 0;
+
+            console.log('Embedding of '+byte_to_embed+'+4 bytes');
+
+            if(byte_to_embed > 0x007fffff) byte_to_embed = 0x007ffff;
+
+            for (i = 1; i < 8; i++) {
+                n = (1 << i) - 1;
+                usable = (_expected * i / n - _expected * i / n % n) / 8;
+                if(usable < byte_to_embed + 4) break;
+            }                
+
+            k = i - 1
+            n = (1 << k) - 1
+
+            if(n == 0){
+                console.log('using default code, file will not fit');
+                n = 1;
+            }
+            
+            if(n == 1){
+                console.log('using default code');
+            }else{
+                console.log('using (1, '+n+', '+k+') code');
+            }
+
+            byte_to_embed |= k << 24;
+            byte_to_embed ^= prng.next();
+            byte_to_embed ^= prng.next() << 8;
+            byte_to_embed ^= prng.next() << 16;
+            byte_to_embed ^= prng.next() << 24;
+
+            next_bit_to_embed = byte_to_embed & 1;
+            byte_to_embed >>= 1;
+            available_bits_to_embed = 31;
+            _embedded += 1;
+
+            for (ii = 0; ii < coeff_count; ii++) {
+                var shuffled_index = pm.get_shuffled(ii);
+
+                if(shuffled_index % 64 == 0 || coeff[shuffled_index] == 0) continue;
+
+                var cc = coeff[shuffled_index];
+                _examined++;
+
+                if(cc > 0 && (cc & 1) != next_bit_to_embed){
+                    coeff[shuffled_index]--;
+                    _changed++;
+                }else if(cc < 0 && (cc & 1) == next_bit_to_embed){
+                    coeff[shuffled_index]++;
+                    _changed++;
+                }
+
+                if(coeff[shuffled_index] != 0){
+                    if(available_bits_to_embed == 0){
+                        if(n > 1 || data_idx >= data.length - 1) break;
+                        byte_to_embed = data[data_idx++];
+                        byte_to_embed ^= prng.next();
+                        available_bits_to_embed = 8;
+                    }
+                    next_bit_to_embed = byte_to_embed & 1;
+                    byte_to_embed >>= 1;
+                    available_bits_to_embed--;
+                    _embedded++;
+                }else{
+                    _thrown++;
+                }
+            }
+
+            if(n > 1){
+                var is_last_byte = false;
+                while(!is_last_byte){
+                    var k_bits_to_embed = 0;
+                    for (i = 0; i < k; i++) {
+                        if(available_bits_to_embed == 0){
+                            if(data_idx >= data.length - 1){
+                                is_last_byte = true;
+                                break;
+                            }
+                            byte_to_embed = data[data_idx++];
+                            byte_to_embed ^= prng.next();
+                            available_bits_to_embed = 8;
+                        }
+                        next_bit_to_embed = byte_to_embed & 1;
+                        byte_to_embed >>= 1;
+                        available_bits_to_embed--;
+                        k_bits_to_embed |= next_bit_to_embed << i;
+                        _embedded++;
+                    }
+
+                    var code_word = [];
+                    var ci = null;
+
+                    for (i = 0; i < n; i++) {     
+                        while(true){
+                            if(++ii >= coeff_count){
+                                throw 'capacity exceeded';
+                            }
+                            ci = pm.get_shuffled(ii);
+                            _examined++;
+                            if(ci % 64 != 0 && coeff[ci] != 0) break;
+                        }
+                        code_word.push(ci);
+                    }
+
+                    while(true){
+                        var vhash = 0, extracted_bit;
+                        
+                        for (i = 0; i < code_word.length; i++) {
+                            if(coeff[code_word[i]] > 0){
+                                extracted_bit = coeff[code_word[i]] & 1;
+                            }else{
+                                extracted_bit = 1 - (coeff[code_word[i]] & 1);
+                            }
+
+                            if(extracted_bit == 1)
+                                vhash ^= i + 1;
+                        }
+
+                        i = vhash ^ k_bits_to_embed;
+                        if(!i) break;
+
+                        i--;
+                        coeff[code_word[i]] += coeff[code_word[i]] < 0 ? 1 : -1;
+                        _changed++;
+
+                        if(coeff[code_word[i]] == 0){
+                            _thrown++;
+                            code_word.splice(i,1);
+                            
+                            while(true){
+                                if(++ii >= coeff_count){
+                                    throw 'capacity exceeded';
+                                }
+                                ci = pm.get_shuffled(ii);
+                                _examined++;
+                                if(ci % 64 != 0 && coeff[ci] != 0) break;
+                            }
+                            code_word.push(ci);
+                        }else{
+                            break;
+                        }
+                    }
+                }
+            }    
+
+            if(_examined > 0)
+                console.log(_examined + ' coefficients examined');
+            if(_changed > 0)
+                console.log(_changed + ' coefficients changed (efficiency: '+(_embedded / _changed).toFixed(2)+' bits per change)');
+            console.log(_thrown + ' coefficients thrown (zeroed)');
+            console.log((_embedded / 8) + '  bytes embedded');
+        }
+    };
+
+    constructor.prototype.f5extract = function(iv){
+        var coeff = this.frames[0].components[0].blocks;
+        var coeff_count = coeff.length;
+
+        console.log('permutation starts');
+        var prng = prng_newstate();
+        prng.init(iv);
+        var pm = new Permutaion(prng, coeff_count);
+        console.log(coeff_count + ' indices shuffled');
+
+        var extracted_byte = 0,
+            available_extracted_bits = 0,
+            n_bytes_extracted = 0,
+            extracted_bit = 0;
+
+        console.log('extraction starts');
+
+        var extracted_file_length = 0,
+            pos = -1, i = 0, cc = 0, shuffled_index = 0;
+
+        while(i < 32){
+            pos++;
+            shuffled_index = pm.get_shuffled(pos);
+            if(shuffled_index % 64 == 0) continue;
+
+            cc = coeff[shuffled_index];
+            
+            if(cc == 0){
+                continue;
+            }else if(cc > 0){
+                extracted_bit = cc & 1;
+            }else{
+                extracted_bit = 1 - (cc & 1);
+            }
+
+            extracted_file_length |= extracted_bit << i;
+            i++;
+        }
+
+        extracted_file_length ^= prng.next();
+        extracted_file_length ^= prng.next() << 8;
+        extracted_file_length ^= prng.next() << 16;
+        extracted_file_length ^= prng.next() << 24;
+
+        var k = (extracted_file_length >> 24) % 32,
+            n = (1 << k) - 1;
+        extracted_file_length &= 0x007fffff;
+
+        if(extracted_file_length > coeff_count){
+            throw 'embeded data is bigger than container';
+        }
+
+        console.log('length of embedded file: ' + extracted_file_length + ' bytes');
+        var data = new Uint8Array(extracted_file_length),
+            data_idx = 0, keep_extracting = true;
+
+        if(n > 1){
+            var vhash = 0, code;
+            console.log('(1, '+n+', '+k+') code used');
+
+            while(keep_extracting){
+                vhash = 0
+                code = 1
+                while(code <= n){
+                    pos++;
+                    if(pos >= coeff_count)
+                        throw 'end of coefficients';
+
+                    shuffled_index = pm.get_shuffled(pos);
+                    if(shuffled_index % 64 == 0) continue;
+
+                    cc = coeff[shuffled_index];
+
+                    if(cc == 0){
+                        continue;
+                    }else if(cc > 0){
+                        extracted_bit = cc & 1;
+                    }else{
+                        extracted_bit = 1 - (cc & 1);
+                    }
+
+                    if(extracted_bit == 1)
+                        vhash ^= code;
+                    code++;
+                }
+
+                for (i = 0; i < k; i++) {
+                    extracted_byte |= (vhash >> i & 1) << available_extracted_bits;
+                    available_extracted_bits++;
+                    if(available_extracted_bits == 8){
+                        data[data_idx++] = extracted_byte ^ prng.next();
+                        extracted_byte = 0;
+                        available_extracted_bits = 0;
+                        n_bytes_extracted++;
+
+                        if(data_idx >= extracted_file_length){
+                            keep_extracting = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+        }else{
+            console.log('default code used')
+
+            while(pos < coeff_count){
+                pos++;
+                shuffled_index = pm.get_shuffled(pos);
+                if(shuffled_index % 64 == 0) continue;
+
+                cc = coeff[shuffled_index];
+
+                if(cc == 0){
+                    continue;
+                }else if(cc > 0){
+                    extracted_bit = cc & 1;
+                }else{
+                    extracted_bit = 1 - (cc & 1);
+                }
+
+                extracted_byte |= extracted_bit << available_extracted_bits;
+                available_extracted_bits++;
+
+                if(available_extracted_bits == 8){
+                    data[data_idx++] = extracted_byte;
+                    if(data_idx >= extracted_file_length){
+                        break;
+                    }
+                }
+            }
+        }
+
+        return data;
+    };
+
 	return constructor;
 
 })();
