@@ -116,8 +116,10 @@ var doEmbed = function(evt) {
     var duration = new Date().getTime() - time_start;
 	console.log('Unpack '+ duration + 'ms');
 
+	time_start = new Date().getTime();
     j.f5embed(embeddata,iv);
-
+    duration = new Date().getTime() - time_start;
+	console.log('Embeding '+ duration + 'ms');
 	var time_start = new Date().getTime();
     var pck = j.pack();
     var duration = new Date().getTime() - time_start;
@@ -156,8 +158,12 @@ var doExtract = function(evt) {
     }
     var duration = new Date().getTime() - time_start;
     console.log('Unpack '+ duration + 'ms');
-
+	
+	time_start = new Date().getTime();
     var hidData = j.f5extract(iv);
+    duration = new Date().getTime() - time_start;
+	console.log('Extracting '+ duration + 'ms');
+	
     var hidDataUri = 'data:application/octet-stream;base64,' + arrayBufferDataUri(hidData);
 
     $('#outputdiv').append('<a href="'+hidDataUri+'" download="data.dat">download extracted data</a><br/>');
