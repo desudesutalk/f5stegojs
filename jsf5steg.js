@@ -1028,11 +1028,11 @@ var jsf5steg = (function(){
 
             if(n > 1){
                 var is_last_byte = false;
-                while(!is_last_byte){
+                while(!is_last_byte || (available_bits_to_embed != 0 && is_last_byte)){
                     var k_bits_to_embed = 0;
                     for (i = 0; i < k; i++) {
                         if(available_bits_to_embed == 0){
-                            if(data_idx >= data.length - 1){
+                            if(data_idx >= data.length){
                                 is_last_byte = true;
                                 break;
                             }
