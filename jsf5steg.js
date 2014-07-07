@@ -1012,7 +1012,7 @@ var jsf5steg = (function(){
 
                 if(coeff[shuffled_index] != 0){
                     if(available_bits_to_embed == 0){
-                        if(n > 1 || data_idx >= data.length - 1) break;
+                        if(n > 1 || data_idx >= data.length) break;
                         byte_to_embed = data[data_idx++];
                         byte_to_embed ^= prng.next();
                         available_bits_to_embed = 8;
@@ -1237,7 +1237,11 @@ var jsf5steg = (function(){
                 available_extracted_bits++;
 
                 if(available_extracted_bits == 8){
-                    data[data_idx++] = extracted_byte;
+                    data[data_idx++] = extracted_byte ^ prng.next();
+                    extracted_byte = 0;
+                    available_extracted_bits = 0;
+                    n_bytes_extracted++;
+
                     if(data_idx >= extracted_file_length){
                         break;
                     }
