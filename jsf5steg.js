@@ -191,14 +191,16 @@ var jsf5steg = (function(){
             				}
           				} else {
             				if (s !== 1) throw "invalid ACn encoding";
-            				successiveACNextValue = receiveAndExtend(s);
+            				successiveACNextValue = receive(s);
+                            if(!successiveACNextValue)
+                                successiveACNextValue = -1;                            
             				successiveACState = r ? 2 : 3;
           				}
           				continue;
         			case 1: // skipping r zero items
         			case 2:
           				if (zz[pos + k])
-            				zz[pos + k] += (readBit() << successive);
+            				zz[pos + k] += (readBit() << successive) * (zz[pos + k] >= 0 ? 1 : -1);
           				else {
             				r--;
             				if (r === 0)
@@ -207,7 +209,7 @@ var jsf5steg = (function(){
           				break;
         			case 3: // set value for a zero item
           				if (zz[pos + k])
-            				zz[pos + k] += (readBit() << successive);
+            				zz[pos + k] += (readBit() << successive) * (zz[pos + k] >= 0 ? 1 : -1);
           				else {
             				zz[pos + k] = successiveACNextValue << successive;
             				successiveACState = 0;
@@ -215,7 +217,7 @@ var jsf5steg = (function(){
           				break;
         			case 4: // eob
           				if (zz[pos + k])
-            				zz[pos + k] += (readBit() << successive);
+            				zz[pos + k] += (readBit() << successive) * (zz[pos + k] >= 0 ? 1 : -1);
           				break;
         		}
         		k++;
