@@ -1,0 +1,126 @@
+#!/usr/bin/env node
+
+var f5stego = require('../'),
+	fs = require('fs'),
+	argv = require('minimist')(process.argv.slice(2),{
+		strings: 'p',
+		boolean: ['x', 'e', 's', 'h'],
+		alias: {
+			'x': 'extract',
+			'e': 'embed',
+			'p': 'password',
+			's': 'strip',
+			'h': 'help'
+		}
+	});
+
+function usage(){
+	console.log('  usage:\n\n'+
+				'    embed:   f5stegojs -e -p password <cover image> <data> <output>\n'+
+				'    extract: f5stegojs -x -p password <cover image> <output>\n\n'+
+				'  options:\n\n'+
+				'    -p, --password   password for F5 algorithm shuffle. REQUIRED.\n'+
+				'    -e, --embed      hidde data in image.\n'+
+				'    -x, --extract    extract hidden data from image.\n'+
+				'    -s, --strip      strip metadata from image (e.g. EXIF).\n'+
+				'    -h, --help       show usage information.\n');
+}
+var cover, data, j, out, stats;
+
+if(argv.embed){
+	if(!argv.password){
+		console.log('ERROR: you must provide password with -p option.\n\n');
+		usage();
+		process.exit(1);
+	}
+
+	if(argv._.length < 3){
+		console.log('ERROR: you must provide cover image, data for embedding and out file.\n\n');
+		usage();
+		process.exit(1);
+	}
+
+	try{
+		cover = fs.readFileSync(argv._[0]);
+	}catch(e){
+		console.error('Unable read cover image "' + argv._[0].toString() + '".');
+		console.error(e);
+		process.exit(1);
+	}
+
+	try{
+		data = fs.readFileSync(argv._[1]);
+	}catch(e){
+		console.error('Unable read data from "' + argv._[1].toString() + '".');
+		console.error(e);
+		process.exit(1);
+	}
+
+	try{
+		j = new f5stego(new Buffer(argv.password.toString(), 'utf8'));
+		j.parse(cover);
+		if(argv.strip){
+			j.strip();
+		}
+		s = j.f5put(data);
+		out = j.pack();
+	}catch(e){
+		console.error('Error while embedding.');
+		console.error(e);
+		process.exit(1);
+	}
+
+	try{
+		fs.writeFileSync(argv._[2].toString(), new Buffer(out));
+	}catch(e){
+		console.error('Unable to write output to "' + argv._[2].toString() + '".');
+		console.error(e);
+		process.exit(1);
+	}
+
+	console.log('Total bytes embedded: ' + s.embedded + ' (' +(100*s.embedded/s.stats.capacity[1]).toFixed(2) +'% of estimated capacity), coefficients changed: ' + s.changed + ' (' + s.thrown + ' thrown), efficiency: ' + s.efficiency + ' bits per change with '+((1<<s.k)-1)+','+s.k+' code.');
+	process.exit(0);
+}else if(argv.extract){
+	if(!argv.password){
+		console.log('ERROR: you must provide password with -p option.\n\n');
+		usage();
+		process.exit(1);
+	}
+
+	if(argv._.length < 2){
+		console.log('ERROR: you must provide cover image, data for embedding and out file.\n\n');
+		usage();
+		process.exit(1);
+	}
+
+	try{
+		cover = fs.readFileSync(argv._[0]);
+	}catch(e){
+		console.error('Unable read cover image "' + argv._[0].toString() + '".');
+		console.error(e);
+		process.exit(1);
+	}
+
+	try{
+		j = new f5stego(new Buffer(argv.password.toString(), 'utf8'));
+		j.parse(cover);
+		out = j.f5get();
+	}catch(e){
+		console.error('Error while extracting.');
+		console.error(e);
+		process.exit(1);
+	}
+
+	try{
+		fs.writeFileSync(argv._[1].toString(), new Buffer(out));
+	}catch(e){
+		console.error('Unable to write output to "' + argv._[1] + '".');
+		console.error(e);
+		process.exit(1);
+	}
+
+	console.log(out.length + ' bytes was extracted to "' + argv._[1] + '".');
+	process.exit(0);
+}else{
+	usage();
+}

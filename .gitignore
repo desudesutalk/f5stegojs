@@ -1,0 +1,5 @@
+temp/
+tmp/
+node_modules/
+*.jpeg
+*.jpg

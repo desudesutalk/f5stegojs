@@ -1,0 +1,34 @@
+{
+	"name": "f5stego-js",
+	"version": "0.1.0",
+	"description": "JPEG steganography for browser and node. F5 algo in pure javascript.",
+	"main": "f5stego.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"bin": {
+		"f5stego": "bin/f5stego"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/desudesutalk/f5stegojs.git"
+	},
+	"keywords": [
+		"jpeg",
+		"steganography"
+	],
+	"author": "desudesutalk",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/desudesutalk/f5stegojs/issues"
+	},
+	"homepage": "https://github.com/desudesutalk/f5stegojs#readme",
+	"devDependencies": {
+		"grunt": "^1.0.1",
+		"grunt-contrib-jshint": "^1.0.0",
+		"grunt-contrib-uglify": "^2.0.0"
+	},
+	"dependencies": {
+		"minimist": "^1.2.0"
+	}
+}
