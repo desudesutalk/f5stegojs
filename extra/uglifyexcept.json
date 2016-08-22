@@ -1,5 +1,5 @@
 {
   "vars": ["f5extract"],
-  "props": ["length"]
+  "props": ["subarray", "set", "push", "splice", "toFixed", "slice", "length"]
 }
 

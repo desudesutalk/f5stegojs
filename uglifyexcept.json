@@ -1,5 +1,5 @@
 {
   "vars": [ "define", "module", "f5stego"],
-  "props": [ "length", "prototype", "amd", "exports", "stats", "app", "data", "capacity", "coeff_total", "coeff_large", "coeff_zero", "coeff_one", "coeff_one_ratio", "k", "embedded", "examined", "changed", "thrown", "efficiency", "analyze", "f5put", "f5get", "parse", "pack", "clearTail", "addTail", "getTail", "clearAPPs", "getAPPn", "setAPPn", "strip", "embed", "extract"]
+  "props": [ "f5stego", "subarray", "set", "push", "splice", "toFixed", "slice", "length", "prototype", "amd", "exports", "stats", "app", "data", "capacity", "coeff_total", "coeff_large", "coeff_zero", "coeff_one", "coeff_one_ratio", "k", "embedded", "examined", "changed", "thrown", "efficiency", "analyze", "f5put", "f5get", "parse", "pack", "clearTail", "addTail", "getTail", "clearAPPs", "getAPPn", "setAPPn", "strip", "embed", "extract"]
 }
 

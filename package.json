@@ -1,6 +1,6 @@
 {
 	"name": "f5stegojs",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "JPEG steganography for browser and node. F5 algo in pure javascript.",
 	"main": "f5stego.js",
 	"scripts": {
