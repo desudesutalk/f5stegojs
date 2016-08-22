@@ -123,7 +123,7 @@ Perform analyze of parsed jpeg for capacity. Returns object what looks like
 }
 ```
 
-Most interesting here is `capacity` array. It contains maximum capacity (in bytes) for different f5 coding modes. This library supports f5 matrix encodings from 1 to 16. AS arrays are indexed from zero first element is not used.
+Most interesting here is `capacity` array. It contains maximum capacity (in bytes) for different f5 coding modes. This library supports f5 matrix encodings from 1 to 16. As arrays are indexed from zero first element is not used.
 
 #### f5stego.prototype.parse(jpeg)
 
@@ -163,7 +163,7 @@ If you pass second argument to `f5put` then its value will be used as `k` in f5 
 }
 ```
 
-Here `k` to value you provided in `f5put` call. There is no `stats` property because image was not analyzed for finding best value of `k`.
+Here `k` equals to value you provided in `f5put` call. There is no `stats` property because image was not analyzed for finding best value of `k`.
 
 #### f5stego.prototype.f5get()
 
@@ -183,7 +183,7 @@ Returns `Uint8Array` with data what was found after EOI marker.
 
 #### f5stego.prototype.setTail(data)
 
-Sets `data` as image tail. If tail data was already presented it will be returned. Otherwise `null` is returned.
+Sets `data` as image tail. If tail data was already presented its old value will be returned. Otherwise `null` is returned.
 
 #### f5stego.prototype.clearTail()
 
@@ -197,7 +197,7 @@ If there is no block with provided `id` then `null` will be returned.
 
 #### f5stego.prototype.setAPPn(id, data)
 
-Sets data as `APPn` block `id`. If such block was already presented in image its value will be returned. Otherwise `null` is returned.
+Sets data as `APPn` block `id`. If such block was already presented in image its previous value will be returned. Otherwise `null` is returned.
 
 #### f5stego.prototype.clearAPPs()
 
@@ -221,7 +221,7 @@ To extract
 f5stego -x -p SecreT cover.jpg output.txt
 ```
 
-Not that password is required for both operations. It is used to initialize f5 shuffling.
+Note what password is required for both operations. It is used to initialize f5 shuffling.
 
 Contributors
 ------------
