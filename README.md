@@ -3,6 +3,8 @@ f5stego.js
 
 Port of [f5 steganographic algorithm](https://code.google.com/p/f5-steganography/) to JavaScript for modern browsers and Node.js.
 
+[Simple online deomo](http://desudesutalk.github.io/f5stegojs/).
+
 Documentation
 =============
 
@@ -28,6 +30,8 @@ Previously I was using [Eph5](https://github.com/Kleshni/Eph5) library. But now 
 Another interest was to make tiny extract only version. You can find it in [extra](extra/) folder. Minified version of that extractor is only 4.5kb (2kb if gzipped).
 
 Note: this implimentation is not compatible with [original code](https://code.google.com/p/f5-steganography/). It uses different shuffle algorithm and stores meatadata (used coding, data size) in a different way.
+
+:warning: Work is still in progress.
 
 ### Security considerations
 
