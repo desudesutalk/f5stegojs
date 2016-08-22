@@ -14,13 +14,62 @@
     <![endif]-->
 
     <title>f5stego.js by desudesutalk</title>
+
+    <style type="text/css">
+      .myButton {
+        -moz-box-shadow:inset 0px 1px 0px 0px #54a3f7;
+        -webkit-box-shadow:inset 0px 1px 0px 0px #54a3f7;
+        box-shadow:inset 0px 1px 0px 0px #54a3f7;
+        background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #007dc1), color-stop(1, #0061a7));
+        background:-moz-linear-gradient(top, #007dc1 5%, #0061a7 100%);
+        background:-webkit-linear-gradient(top, #007dc1 5%, #0061a7 100%);
+        background:-o-linear-gradient(top, #007dc1 5%, #0061a7 100%);
+        background:-ms-linear-gradient(top, #007dc1 5%, #0061a7 100%);
+        background:linear-gradient(to bottom, #007dc1 5%, #0061a7 100%);
+        filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#007dc1', endColorstr='#0061a7',GradientType=0);
+        background-color:#007dc1;
+        -moz-border-radius:3px;
+        -webkit-border-radius:3px;
+        border-radius:3px;
+        border:1px solid #124d77;
+        display:inline-block;
+        cursor:pointer;
+        color:#ffffff;
+        font-family:Arial;
+        font-size:13px;
+        padding:6px 24px;
+        text-decoration:none;
+        text-shadow:0px 1px 0px #154682;
+      }
+      .myButton:hover {
+        background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #0061a7), color-stop(1, #007dc1));
+        background:-moz-linear-gradient(top, #0061a7 5%, #007dc1 100%);
+        background:-webkit-linear-gradient(top, #0061a7 5%, #007dc1 100%);
+        background:-o-linear-gradient(top, #0061a7 5%, #007dc1 100%);
+        background:-ms-linear-gradient(top, #0061a7 5%, #007dc1 100%);
+        background:linear-gradient(to bottom, #0061a7 5%, #007dc1 100%);
+        filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#0061a7', endColorstr='#007dc1',GradientType=0);
+        background-color:#0061a7;
+      }
+      .myButton:active {
+        position:relative;
+        top:1px;
+      }
+
+      label {
+        display: inline-block;
+        width: 10em;
+        text-align: right;
+        margin-right: 1em;
+      }
+    </style>
   </head>
 
   <body>
     <header>
       <div class="inner">
         <h1>f5stego.js</h1>
-        <h2>JPEG steganography for browser and node. F5 algo in pure javascript.</h2>
+        <h2>JPEG steganography for browser and node.<br/>F5 algo in pure javascript.</h2>
         <a href="https://github.com/desudesutalk/f5stegojs" class="button"><small>View project on</small> GitHub</a>
       </div>
     </header>
@@ -28,35 +77,15 @@
     <div id="content-wrapper">
       <div class="inner clearfix">
         <section id="main-content">
-          <h1>
-<a id="f5stegojs" class="anchor" href="#f5stegojs" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.js</h1>
+<h2>
+<a id="demo" class="anchor" href="#demo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Online demo</h2>
 
-<p>Port of <a href="https://code.google.com/p/f5-steganography/">f5 steganographic algorithm</a> to JavaScript for modern browsers and Node.js.</p>
+<p><label>Password:</label> <input name="passwd" type="text" value="" size="10"><p>
 
-<h1>
-<a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Documentation</h1>
+<p><label>Cover image:</label> <input type="file" id="image-select"/> <input type="button" value="extract data" id="do_extract" class="myButton"></p>
 
-<ul>
-<li>
-<a href="#overview">Overview</a>
-
-<ul>
-<li><a href="#security-considerations">Security considerations</a></li>
-</ul>
-</li>
-<li><a href="#installation">Installation</a></li>
-<li>
-<a href="#usage">Usage</a>
-
-<ul>
-<li><a href="#advanced-usage">Advanced usage</a></li>
-<li><a href="#metadata-manipulation">Metadata manipulation</a></li>
-<li><a href="#cli-tool">CLI tool</a></li>
-</ul>
-</li>
-<li><a href="#contributors">Contributors</a></li>
-<li><a href="#license">License</a></li>
-</ul>
+<p><label>Data to embedd:</label> <input type="file" id="data-select"/> <input type="button" value="embed data" id="do_embed" class="myButton"></p>
+<pre id="outputdiv"></pre>
 
 <h2>
 <a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview</h2>
@@ -71,223 +100,8 @@
 
 <p>Note: this implimentation is not compatible with <a href="https://code.google.com/p/f5-steganography/">original code</a>. It uses different shuffle algorithm and stores meatadata (used coding, data size) in a different way.</p>
 
-<h3>
-<a id="security-considerations" class="anchor" href="#security-considerations" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Security considerations</h3>
+<p>For more info and documentation visit <a href="https://github.com/desudesutalk/f5stegojs">project page on GitHub</a>.</p>
 
-<p>First: this lib <strong>does not encrypt</strong> data it hides. If you need good security then encrypt your data with some strong algorithms before embedding. If you want my advice then take a look at <a href="https://github.com/dchest/tweetnacl-js">TweetNaCl-js</a>.</p>
-
-<p>Yes, you need to provide key for data extraction. And if key is not correct, garbage will be extracted. This looks like encryption but actually this is just a side effect. This key is used for coefficients shuffling and data masking - all this is for making f5 less detectable, not encrypted.</p>
-
-<p>Second: f5 <strong>can be detected</strong>. For example with <a href="https://github.com/abeluck/stegdetect">stegdetect</a>. Yep, this is not 100% guaranteed especially if you embed small messages into big images. But it is better to think what you hide your data from humans, not machines.</p>
-
-<h2>
-<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
-
-<pre><code>npm install f5stegojs
-</code></pre>
-
-<p>This package also provides simple cli tool which can be installed with</p>
-
-<pre><code>npm install f5stegojs --global
-</code></pre>
-
-<p>f5stego.js uses <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays">typed arrays</a> so it will not work in environments where typed arrays are not present.</p>
-
-<h2>
-<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
-
-<p>In browser include minifed version</p>
-
-<div class="highlight highlight-text-html-basic"><pre>&lt;<span class="pl-ent">script</span> <span class="pl-e">type</span>=<span class="pl-s"><span class="pl-pds">"</span>text/javascript<span class="pl-pds">"</span></span> <span class="pl-e">src</span>=<span class="pl-s"><span class="pl-pds">"</span>f5stego.min.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;</pre></div>
-
-<p>In Node use <code>require</code> to load module</p>
-
-<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> f5stego <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>f5stegojs<span class="pl-pds">'</span></span>);</pre></div>
-
-<p>Simple usage will be like</p>
-
-<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> stegKey <span class="pl-k">=</span> [<span class="pl-c1">1</span>,<span class="pl-c1">2</span>,<span class="pl-c1">3</span>,<span class="pl-c1">4</span>,<span class="pl-c1">5</span>,<span class="pl-c1">6</span>,<span class="pl-c1">7</span>,<span class="pl-c1">8</span>,<span class="pl-c1">9</span>];
-
-<span class="pl-k">var</span> stegger <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">f5stego</span>(stegKey); <span class="pl-c">// init stegger with key</span>
-
-<span class="pl-c">//embed message into image</span>
-<span class="pl-k">var</span> secretImage <span class="pl-k">=</span> <span class="pl-smi">stegger</span>.<span class="pl-en">embed</span>(imageArray, dataArray);
-
-<span class="pl-c">//extract message from image</span>
-<span class="pl-k">var</span> message <span class="pl-k">=</span> <span class="pl-smi">stegger</span>.<span class="pl-en">extract</span>(secretImage);</pre></div>
-
-<p>Here <code>stegKey</code> is an array of byte values which is used for initialization of f5 shuffle. <code>imageArray</code> and <code>dataArray</code> are <code>Uint8Array</code> instances with cover jpeg image and message to embed respectively.</p>
-
-<p>f5stegojs waits for <code>Uint8Array</code> in its input and also returns <code>Uint8Array</code>. But in recent versions of Node <code>Buffer</code> is also instance of <code>Uint8Array</code> so buffers can be used as inputs but lib still return <code>Uint8Array</code>.</p>
-
-<p>Also note that f5stegojs throws in case of errors, so use try-catch.</p>
-
-<h3>
-<a id="advanced-usage" class="anchor" href="#advanced-usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Advanced usage</h3>
-
-<p>f5stego has also several utility methods and expose a several functions what allow you to control a bit how data is embedded into image.</p>
-
-<h4>
-<a id="f5stegoprototypeanalyze" class="anchor" href="#f5stegoprototypeanalyze" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.prototype.analyze()</h4>
-
-<p>Perform analyze of parsed jpeg for capacity. Returns object what looks like</p>
-
-<div class="highlight highlight-source-js"><pre>{
-  <span class="pl-s"><span class="pl-pds">"</span>capacity<span class="pl-pds">"</span></span><span class="pl-k">:</span> [<span class="pl-c1">0</span>,
-    <span class="pl-c1">18477</span>,
-    <span class="pl-c1">13371</span>,
-    <span class="pl-c1">9092</span>,
-    <span class="pl-c1">5856</span>,
-    <span class="pl-c1">3609</span>,
-    <span class="pl-c1">2152</span>,
-    <span class="pl-c1">1251</span>,
-    <span class="pl-c1">713</span>,
-    <span class="pl-c1">399</span>,
-    <span class="pl-c1">220</span>,
-    <span class="pl-c1">120</span>,
-    <span class="pl-c1">63</span>,
-    <span class="pl-c1">33</span>,
-    <span class="pl-c1">16</span>,
-    <span class="pl-c1">6</span>,
-    <span class="pl-c1">3</span>
-  ],
-  <span class="pl-s"><span class="pl-pds">"</span>coeff_total<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">460800</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>coeff_large<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">114241</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>coeff_zero<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">270810</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>coeff_one<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">68549</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>coeff_one_ratio<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">0.37501504458668417</span>
-}</pre></div>
-
-<p>Most interesting here is <code>capacity</code> array. It contains maximum capacity (in bytes) for different f5 coding modes. This library supports f5 matrix encodings from 1 to 16. AS arrays are indexed from zero first element is not used.</p>
-
-<h4>
-<a id="f5stegoprototypeparsejpeg" class="anchor" href="#f5stegoprototypeparsejpeg" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.prototype.parse(jpeg)</h4>
-
-<p>Parses jpeg file. Jpeg is decompressed up to DCT coefficients and now ready for embedding/extracting f5 data.</p>
-
-<h4>
-<a id="f5stegoprototypef5putdata" class="anchor" href="#f5stegoprototypef5putdata" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.prototype.f5put(data)</h4>
-
-<p>Embeds <code>data</code> into image using most appropriate coding. Returns object with resulting statistics what looks like</p>
-
-<div class="highlight highlight-source-js"><pre>{
-  <span class="pl-s"><span class="pl-pds">"</span>k<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">4</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>embedded<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">5024</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>examined<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">155976</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>changed<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">14070</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>thrown<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">5267</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>efficiency<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>2.86<span class="pl-pds">"</span></span>,
-  <span class="pl-s"><span class="pl-pds">"</span>stats<span class="pl-pds">"</span></span><span class="pl-k">:</span> { <span class="pl-k">...</span> } <span class="pl-c">// same object what was returned by analyze()</span>
-}</pre></div>
-
-<p>Here <code>k</code> shows what coding was used by f5 algorithm. <code>changed</code> shows how many DCT coefficients was changed and <code>thrown</code> shows how many of them was thrown (turned to zero). <code>efficiency</code> is how many bits of message was written by change of one DCT coefficient.</p>
-
-<p>Value of <code>embedded</code> will be bigger than original message because it also counts additional bits what is embedded into image by this library (<code>k</code> value, data size. From 20 to 28 bits).</p>
-
-<h4>
-<a id="f5stegoprototypef5putdata-k" class="anchor" href="#f5stegoprototypef5putdata-k" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.prototype.f5put(data, k)</h4>
-
-<p>If you pass second argument to <code>f5put</code> then its value will be used as <code>k</code> in f5 algorithm. Returning object in this case will be like</p>
-
-<div class="highlight highlight-source-js"><pre>{
-  <span class="pl-s"><span class="pl-pds">"</span>k<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">2</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>embedded<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">5023.75</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>examined<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">67931</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>changed<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">20269</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>thrown<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-c1">7648</span>,
-  <span class="pl-s"><span class="pl-pds">"</span>efficiency<span class="pl-pds">"</span></span><span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">"</span>1.98<span class="pl-pds">"</span></span>
-}</pre></div>
-
-<p>Here <code>k</code> to value you provided in <code>f5put</code> call. There is no <code>stats</code> property because image was not analyzed for finding best value of <code>k</code>.</p>
-
-<h4>
-<a id="f5stegoprototypef5get" class="anchor" href="#f5stegoprototypef5get" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.prototype.f5get()</h4>
-
-<p>Extracts hidden data from previously parsed jpeg and returns it as <code>Uint8Arrat</code>. Zero length array can be returned or array containing garbage (if image has no embedded message, or if wrong <code>stegoKey</code> was used).</p>
-
-<h4>
-<a id="f5stegoprototypepack" class="anchor" href="#f5stegoprototypepack" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.prototype.pack()</h4>
-
-<p>Compresses jpeg back and return resulting file as <code>Uint8Array</code>.</p>
-
-<h3>
-<a id="metadata-manipulation" class="anchor" href="#metadata-manipulation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Metadata manipulation</h3>
-
-<p>This methods can be used to manipulate data what was stored in jpeg as <code>APPn</code> blocks or located after EOI marker.</p>
-
-<h4>
-<a id="f5stegoprototypegettail" class="anchor" href="#f5stegoprototypegettail" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.prototype.getTail()</h4>
-
-<p>Returns <code>Uint8Array</code> with data what was found after EOI marker.</p>
-
-<h4>
-<a id="f5stegoprototypesettaildata" class="anchor" href="#f5stegoprototypesettaildata" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.prototype.setTail(data)</h4>
-
-<p>Sets <code>data</code> as image tail. If tail data was already presented it will be returned. Otherwise <code>null</code> is returned.</p>
-
-<h4>
-<a id="f5stegoprototypecleartail" class="anchor" href="#f5stegoprototypecleartail" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.prototype.clearTail()</h4>
-
-<p>Clears image tail data.</p>
-
-<h4>
-<a id="f5stegoprototypegetappnid-remove" class="anchor" href="#f5stegoprototypegetappnid-remove" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.prototype.getAPPn(id, remove)</h4>
-
-<p>Returns data from <code>APPn</code> block <code>id</code>. jpeg uses ids from 0xE0 to 0xEF for <code>APPn</code> blocks and id 0xFE for comment. If <code>remove</code> evaluates to true, then block will be removed from image.</p>
-
-<p>If there is no block with provided <code>id</code> then <code>null</code> will be returned.</p>
-
-<h4>
-<a id="f5stegoprototypesetappnid-data" class="anchor" href="#f5stegoprototypesetappnid-data" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.prototype.setAPPn(id, data)</h4>
-
-<p>Sets data as <code>APPn</code> block <code>id</code>. If such block was already presented in image its value will be returned. Otherwise <code>null</code> is returned.</p>
-
-<h4>
-<a id="f5stegoprototypeclearapps" class="anchor" href="#f5stegoprototypeclearapps" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.prototype.clearAPPs()</h4>
-
-<p>Removes all <code>AAPn</code> blocks from image and returns them. <strong>Note</strong>: JFIF block (with id 0xE0) will not be removed.</p>
-
-<h4>
-<a id="f5stegoprototypestrip" class="anchor" href="#f5stegoprototypestrip" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>f5stego.prototype.strip()</h4>
-
-<p>Internally calls <code>clearAPPs</code> and <code>clearTail</code>. Always returns <code>true</code>.</p>
-
-<h3>
-<a id="cli-tool" class="anchor" href="#cli-tool" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>CLI tool</h3>
-
-<p>This package also contains binary what allows you to embed and extract data from images in command line. This tool is very simple and naive. It can be installed globally with npm by command <code>npm install f5stegojs --global</code>.</p>
-
-<p>To embed data execute something like</p>
-
-<pre><code>f5stego -e -p SecreT cover.jpg message.txt output.jpeg
-</code></pre>
-
-<p>To extract</p>
-
-<pre><code>f5stego -x -p SecreT cover.jpg output.txt
-</code></pre>
-
-<p>Not that password is required for both operations. It is used to initialize f5 shuffling.</p>
-
-<h2>
-<a id="contributors" class="anchor" href="#contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Contributors</h2>
-
-<p>Original f5 algorithm is by Andreas Westfeld. <a href="https://code.google.com/p/f5-steganography/">https://code.google.com/p/f5-steganography/</a></p>
-
-<p>JavaScript port of f5 algorithm and jpeg codec optimizations by <a href="https://github.com/desudesutalk">desudesutalk</a>.</p>
-
-<p>Code of this lib is based on <a href="https://github.com/owencm/js-steg">js-steg</a> by Owen Campbell-Moore. js-steg uses code from:</p>
-
-<ul>
-<li>
-<a href="https://github.com/notmasteryet/jpgjs">notmasteryet</a> (jpeg decoding)</li>
-<li>Andreas Ritter (jpeg encoding)</li>
-</ul>
-
-<h2>
-<a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
-
-<p>Released under MIT. See <a href="LICENSE.txt">LICENSE.txt</a></p>
         </section>
 
         <aside id="sidebar">
@@ -307,6 +121,9 @@
       </div>
     </div>
 
-  
+<script type="text/javascript" src="javascripts/f5stego.min.js"></script>
+<script type="text/javascript" src="javascripts/FileSaver.min.js"></script>
+<script type="text/javascript" src="javascripts/main.js"></script>
+
   </body>
 </html>
