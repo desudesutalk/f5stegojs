@@ -1,0 +1,61 @@
+#!/usr/bin/env node
+
+var f5stego = require('../'),
+	fs = require('fs');
+
+function usage(){
+	console.log('  Dump DCT coefficients from JPEG images.\n\n'+
+				'  usage:\n\n'+
+				'    stegodctdump <image>\n\n'+
+				'  output:\n\n'+
+				'    For each component of image separate file with extension DCT_n will be created. Where n is ID of component\n'+
+				'    Components are not dequantized or dezigzagged.\n'+
+				'    Each component is two byte signed int.');
+}
+
+var cover, j, out, out16, i, k, c;
+
+if(!process.argv[2]){
+	usage();
+	process.exit(1);
+}
+
+var imgfile = process.argv[2];
+
+try{
+	cover = fs.readFileSync(imgfile);
+}catch(e){
+	console.error('Unable read image "' + imgfile.toString() + '".');
+	console.error(e);
+	process.exit(1);
+}
+
+try{
+	j = new f5stego([1,2,3]);
+	j.parse(cover);
+}catch(e){
+	console.error('Image parsing error.');
+	console.error(e);
+	process.exit(1);
+}
+
+for (i = 0; i < j.frame.components.length; i++) {
+	c = j.frame.components[i];
+	out = new Uint8Array(c.blocks.length * 2);
+	out16 = new Int16Array(out.buffer, out.byteOffset, c.blocks.length);
+
+	out16.set(c.blocks);
+
+	for (k = 0; k < c.blocksDC.length; k++) {
+		out16[k*64] = c.blocksDC[k];
+	}
+
+	try{
+		fs.writeFileSync(imgfile + '.DCT_' + c.componentId, new Buffer(out));
+	}catch(e){
+		console.error('Unable to write output to "' + imgfile + '.DCT_' + c.componentId + '".');
+		console.error(e);
+		process.exit(1);
+	}
+}
+

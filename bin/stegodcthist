@@ -1,0 +1,72 @@
+#!/usr/bin/env node
+
+var f5stego = require('../'),
+	fs = require('fs');
+
+function usage(){
+	console.log('  Dump DCT coefficients histogram from JPEG images.\n\n'+
+				'  usage:\n\n'+
+				'    stegodumpdct <image> [n]\n\n'+
+				'    n  is optional parameter what controls maximum (absolute) value of counted coefficients\n'+
+				'  output:\n\n'+
+				'    For each component of image separate file with extension DCT_hist_n will be created. Where n is ID of component\n'+
+				'    Components are not dequantized or dezigzagged.\n'+
+				'    Each component is two byte signed int.');
+}
+
+var cover, j, out, out16, i, k, c;
+
+if(!process.argv[2]){
+	usage();
+	process.exit(1);
+}
+
+var imgfile = process.argv[2];
+var n = parseInt(process.argv[3]) || 32768;
+
+try{
+	cover = fs.readFileSync(imgfile);
+}catch(e){
+	console.error('Unable read image "' + imgfile.toString() + '".');
+	console.error(e);
+	process.exit(1);
+}
+
+try{
+	j = new f5stego([1,2,3]);
+	j.parse(cover);
+}catch(e){
+	console.error('Image parsing error.');
+	console.error(e);
+	process.exit(1);
+}
+
+var cnt = new Uint32Array(65536);
+
+for (i = 0; i < j.frame.components.length; i++) {
+	cnt.fill(0);
+
+	c = j.frame.components[i];
+
+	for (k = 0; k < c.blocks.length; k++) {
+		if(k%64 === 0) continue;
+
+		cnt[32768 + c.blocks[k]]++;
+	}
+
+	s = [];
+
+	for(k = 32768 - n; k < 32768+n; k++){
+		s.push(cnt[k]);
+	}
+
+	console.log(k, n, s.length);
+	try{
+		fs.writeFileSync(imgfile + '.DCT_hist_' + c.componentId, s.join(';'));
+	}catch(e){
+		console.error('Unable to write output to "' + imgfile + '.DCT_hist_' + c.componentId + '".');
+		console.error(e);
+		process.exit(1);
+	}
+}
+

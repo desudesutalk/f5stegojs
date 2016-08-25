@@ -123,44 +123,10 @@
 		this.shuffleInit(key);
 	};
 
-	// Arrays and Math wrappers
-	// ===========================================================================================================
-		// This is needed because in Tampermonkey/Greasemonkey this calls causes function deopt.
-		// This happens because for sandboxes in those environments all this are external objects.
-		function makeAB(size, p2, p3) {
-			return new ArrayBuffer(size, p2, p3);
-		}
-
-		function makeUin8(size, p2, p3) {
-			return new Uint8Array(size, p2, p3);
-		}
-
-		function makeUin32(size, p2, p3) {
-			return new Uint32Array(size, p2, p3);
-		}
-
-		function makeUin16(size, p2, p3) {
-			return new Uint16Array(size, p2, p3);
-		}
-
-		function makeIn16(size, p2, p3) {
-			return new Int16Array(size, p2, p3);
-		}
-
-		function makeArr(size) {
-			return new Array(size);
-		}
-
-		function mathCeil(n) { // instead of Math.ceil()
-			var f = (n << 0);
-			return f == n ? f : f + 1;
-		}
-
 	// Shuffle used in f5 algo
 	// ===========================================================================================================
 		f5stego.prototype.shuffleInit = function(key) {
-			this.randPool = makeAB(this.maxPixels * 4.125);
-			this.rand32Array = makeUin32(this.randPool);
+			this.randPool = new ArrayBuffer(this.maxPixels * 4.125);
 
 			if (!key.length) throw 'key needed';
 
@@ -168,8 +134,8 @@
 				j = 0,
 				t = 0,
 				k = 0,
-				S = makeUin8(256),
-				rnd = makeUin8(this.randPool);
+				S = new Uint8Array(256),
+				rnd = new Uint8Array(this.randPool);
 
 			// init state from key
 			for (i = 0; i < 256; ++i) S[i] = i;
@@ -195,28 +161,29 @@
 		};
 
 		f5stego.prototype.stegShuffle = function(pm) {
-			var t, l, k, random_index;
+			var t, l, k, random_index,
+				rand32Array = new Uint32Array(this.randPool);
 
 			if (typeof pm == 'number') {
 				l = pm;
-				pm = makeUin32(l);
+				pm = new Uint32Array(l);
 				for (k = 1; k < l; k++) {
-					random_index = this.rand32Array[k] % (k + 1);
+					random_index = rand32Array[k] % (k + 1);
 					if (random_index != k) pm[k] = pm[random_index];
 					pm[random_index] = k;
 				}
 			} else {
 				l = pm.length;
 				for (k = 1; k < l; k++) {
-					random_index = this.rand32Array[k] % (k + 1);
-					if (random_index != k) {
+					random_index = rand32Array[k] % (k + 1);
+					// if (random_index != k) {
 						t = pm[k];
 						pm[k] = pm[random_index];
 						pm[random_index] = t;
-					}
+					// }
 				}
 			}
-			return { pm: pm, gamma: makeUin8(this.randPool, l * 4) };
+			return { pm: pm, gamma: new Uint8Array(this.randPool, l * 4) };
 		};
 
 	// Internal f5 algo functions
@@ -449,12 +416,12 @@
 			if (data.length > 8388607) throw 'Data too big. Max 8388607 bytes allowed.';
 
 			if (data.length < 32768) {
-				t = makeUin8(2 + data.length);
+				t = new Uint8Array(2 + data.length);
 				t[0] = data.length & 255;
 				t[1] = data.length >>> 8;
 				t.set(data, 2);
 			} else {
-				t = makeUin8(3 + data.length);
+				t = new Uint8Array(3 + data.length);
 				t[0] = data.length & 255;
 				t[1] = ((data.length >>> 8) & 127) + 128;
 				t[2] = data.length >>> 15;
@@ -512,7 +479,7 @@
 				}
 			}
 
-			var coeff = makeIn16(comp.blocks.length);
+			var coeff = new Int16Array(comp.blocks.length);
 			coeff.set(comp.blocks);
 
 			var pos = -1,
@@ -525,7 +492,7 @@
 
 			var n, k = 0;
 
-			var out = makeUin8((coeff.length / 8) | 0),
+			var out = new Uint8Array((coeff.length / 8) | 0),
 				extrByte = 0,
 				outPos = 0,
 				bitsAvail = 0,
@@ -636,7 +603,7 @@
 			function _buildHuffmanTable(nrcodes, values) {
 				var codevalue = 0,
 					pos_in_table = 0,
-					HT = makeUin16(65536);
+					HT = new Uint16Array(65536);
 				for (var k = 0; k < 16; k++) {
 					for (var j = 0; j < nrcodes[k]; j++) {
 						for (var i = codevalue << (15 - k), cntTo = ((codevalue + 1) << (15 - k)); i < cntTo; i++) {
@@ -1076,17 +1043,17 @@
 						this.frame.maxH = maxH;
 						this.frame.maxV = maxV;
 
-						var mcusPerLine = mathCeil(this.frame.samplesPerLine / 8 / maxH);
-						var mcusPerColumn = mathCeil(this.frame.scanLines / 8 / maxV);
+						var mcusPerLine = Math.ceil(this.frame.samplesPerLine / 8 / maxH);
+						var mcusPerColumn = Math.ceil(this.frame.scanLines / 8 / maxV);
 						for (i = 0; i < this.frame.components.length; i++) {
 							component = this.frame.components[i];
-							var blocksPerLine = mathCeil(mathCeil(this.frame.samplesPerLine / 8) * component.h / maxH);
-							var blocksPerColumn = mathCeil(mathCeil(this.frame.scanLines / 8) * component.v / maxV);
+							var blocksPerLine = Math.ceil(Math.ceil(this.frame.samplesPerLine / 8) * component.h / maxH);
+							var blocksPerColumn = Math.ceil(Math.ceil(this.frame.scanLines / 8) * component.v / maxV);
 							var blocksPerLineForMcu = mcusPerLine * component.h;
 							var blocksPerColumnForMcu = mcusPerColumn * component.v;
 
-							component['blocks'] = makeIn16(blocksPerColumnForMcu * blocksPerLineForMcu * 64);
-							component['blocksDC'] = makeIn16(blocksPerColumnForMcu * blocksPerLineForMcu);
+							component['blocks'] = new Int16Array(blocksPerColumnForMcu * blocksPerLineForMcu * 64);
+							component['blocksDC'] = new Int16Array(blocksPerColumnForMcu * blocksPerLineForMcu);
 							component['blocksPerLine'] = blocksPerLine;
 							component['blocksPerColumn'] = blocksPerColumn;
 							component['blocksPerLineForMcu'] = blocksPerLineForMcu;
@@ -1100,11 +1067,11 @@
 						var huffmanLength = readUint16();
 						for (i = 2; i < huffmanLength;) {
 							var huffmanTableSpec = data[offset++];
-							var codeLengths = makeUin8(16);
+							var codeLengths = new Uint8Array(16);
 							var codeLengthSum = 0;
 							for (j = 0; j < 16; j++, offset++)
 								codeLengthSum += (codeLengths[j] = data[offset]);
-							var huffmanValues = makeUin8(codeLengthSum);
+							var huffmanValues = new Uint8Array(codeLengthSum);
 							for (j = 0; j < codeLengthSum; j++, offset++)
 								huffmanValues[j] = data[offset];
 							i += 17 + codeLengthSum;
@@ -1171,8 +1138,8 @@
 
 	// Standard Huffman tables for coder initialization
 	// ===========================================================================================================
-		var bitcode = makeArr(65535),
-			category = makeArr(65535),
+		var bitcode = new Array(65535),
+			category = new Array(65535),
 			std_dc_luminance_nrcodes = [0, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
 			std_dc_luminance_values = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
 			std_ac_luminance_nrcodes = [0, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d],
@@ -1284,7 +1251,7 @@
 
 				byteout[outpos++] = value;
 				if (outpos > poslast) {
-					t = makeUin8(byteout.length * 2);
+					t = new Uint8Array(byteout.length * 2);
 					t.set(byteout);
 					byteout = t;
 					poslast = t.length - 128;
@@ -1299,7 +1266,7 @@
 			function writeBlock(block) {
 				var t;
 				if (outpos + block.length > poslast) {
-					t = makeUin8(byteout.length * 2 + block.length);
+					t = new Uint8Array(byteout.length * 2 + block.length);
 					t.set(byteout);
 					byteout = t;
 					poslast = t.length - 128;
@@ -1575,7 +1542,7 @@
 				}
 
 				if (outpos > poslast) {
-					t = makeUin8(byteout.length * 2);
+					t = new Uint8Array(byteout.length * 2);
 					t.set(byteout);
 					byteout = t;
 					poslast = t.length - 128;
@@ -1585,7 +1552,7 @@
 			}
 
 			// Initialize bit writer
-			byteout = makeUin8(65536);
+			byteout = new Uint8Array(65536);
 			poslast = 65536 - 128;
 			outpos = 0;
 			bytenew = 0;
@@ -1677,7 +1644,7 @@
 		};
 
 		f5stego.prototype.getAPPn = function(id, remove) {
-			var i, t, ret = makeUin8(0),
+			var i, t, ret = new Uint8Array(0),
 				n = [];
 
 			id &= 0xFF;
@@ -1686,7 +1653,7 @@
 
 			for (i = 0; i < this.APPn.length; i++) {
 				if (this.APPn[i].app == id) {
-					t = makeUin8(ret.length + this.APPn[i].data.length);
+					t = new Uint8Array(ret.length + this.APPn[i].data.length);
 					t.set(ret);
 					t.set(this.APPn[i].data, ret.length);
 					ret = t;

@@ -1,13 +1,16 @@
 {
 	"name": "f5stegojs",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "JPEG steganography for browser and node. F5 algo in pure javascript.",
 	"main": "f5stego.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"bin": {
-		"f5stego": "bin/f5stego"
+		"f5stego": "bin/f5stego",
+		"stegodcthist": "bin/stegodcthist",
+		"stegodctdump": "bin/stegodctdump"
+
 	},
 	"repository": {
 		"type": "git",

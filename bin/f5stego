@@ -15,7 +15,8 @@ var f5stego = require('../'),
 	});
 
 function usage(){
-	console.log('  usage:\n\n'+
+	console.log('  Embed and extract data from JPEG images using F5 algorithm.\n\n'+
+				'  usage:\n\n'+
 				'    embed:   f5stegojs -e -p password <cover image> <data> <output>\n'+
 				'    extract: f5stegojs -x -p password <cover image> <output>\n\n'+
 				'  options:\n\n'+
