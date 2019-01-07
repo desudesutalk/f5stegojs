@@ -1,0 +1,1 @@
+test string in the TEST_FILE_FOR_EMBEDDING.txt
