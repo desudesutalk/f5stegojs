@@ -1,3 +1,53 @@
+/**
+ * Creates a new Uint8Array based on two different ArrayBuffers
+ *
+ * @private
+ * @param {ArrayBuffers} buffer1 The first buffer.
+ * @param {ArrayBuffers} buffer2 The second buffer.
+ * @return {ArrayBuffers} The new ArrayBuffer created out of the two.
+ */
+var _appendBuffer = function(buffer1, buffer2) {
+  var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+  tmp.set(new Uint8Array(buffer1), 0);
+  tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+  return tmp.buffer;
+};
+
+// source: http://stackoverflow.com/a/11058858
+function ab2str(buf) {//array buffer to string
+  return String.fromCharCode.apply(null, new Uint16Array(buf));
+}
+
+// source: http://stackoverflow.com/a/11058858
+function str2ab(str) {//string to arraybuffer
+  var buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
+  var bufView = new Uint16Array(buf);
+  for (var i = 0, strLen = str.length; i < strLen; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+  return buf;
+}
+
+if (!ArrayBuffer.prototype.slice)
+    ArrayBuffer.prototype.slice = function (start, end) {
+        var that = new Uint8Array(this);
+        if (end == undefined) end = that.length;
+        var result = new ArrayBuffer(end - start);
+        var resultArray = new Uint8Array(result);
+        for (var i = 0; i < resultArray.length; i++)
+           resultArray[i] = that[i + start];
+        return result;
+    }
+
+if (!Uint8Array.prototype.slice) {
+  Object.defineProperty(Uint8Array.prototype, 'slice', {
+    value: function (begin, end)
+     {
+        return new Uint8Array(Array.prototype.slice.call(this, begin, end));
+     }
+  });
+}
+
 var arrayBufferDataUri = function(raw) {
     "use strict";
 
@@ -80,7 +130,18 @@ var handleDataSelect = function(evt) {
 
     reader.onload = (function(theFile) {
         return function(e) {
-                embeddata = e.target.result;
+                var file_content = e.target.result;								//file content in arraybuffer
+
+				var filename = files[0].name;								//filename to string
+
+				var filename_buf = new ArrayBuffer(256);					//set static bytelength for filename
+				var fn_bufView = new Uint16Array(filename_buf);
+				for (var i = 0, strLen = filename.length; i < strLen; i++) { //fill filename to arraybuffer
+					fn_bufView[i] = filename.charCodeAt(i);
+				}				
+				var filename_and_content = _appendBuffer(filename_buf, file_content);	//concatenate two arraybuffers with filename and content
+
+				embeddata = filename_and_content; //this will be encrypted...
         };
     })(files[0]);
 
@@ -157,10 +218,23 @@ var doExtract = function(evt) {
     var duration = new Date().getTime() - time_start;
     console.log('Unpack '+ duration + 'ms');
 
-    var hidData = j.f5extract(iv);
-    var hidDataUri = 'data:application/octet-stream;base64,' + arrayBufferDataUri(hidData);
+    var hidData = j.f5extract(iv);												//decrypted filename and content
+	var view = new Uint8Array(hidData);											//int array from arraybuffer
+	
+	var filename_uint8 = new Uint8Array(256);
+	for (var i = 0; i < 256; i++) { 											//fill filename uint8 array
+		filename_uint8[i] = view[i];
+	}
+	var extracted_filename_buf = filename_uint8.buffer;							//uint8 to arraybuffer
+	var extracted_filename = ab2str(extracted_filename_buf).replace(/\0/g, '');	//get filename string from arraybuffer, and remove null-bytes in the end.
+	
+	var hiddata_without_filename = new Uint8Array(hidData).slice(256);			//get uint8 array after filename arraybuffer.
+	var hiddata_file_content = new Uint8Array(hidData-256);						//resize content arraybuffer and cut arraybuffer with filename
+	hiddata_file_content = hiddata_without_filename.buffer;						//uint8 to arraybuffer
 
-    $('#outputdiv').append('<a href="'+hidDataUri+'" download="data.dat">download extracted data</a><br/>');
+    var hidDataUri = 'data:application/octet-stream;base64,' + arrayBufferDataUri(hiddata_file_content); //using content only
+
+    $('#outputdiv').append(	'<a href="'+hidDataUri+'" download="'+extracted_filename+'">download extracted data</a><br/>'); //filename in "download"
 };
 
 
