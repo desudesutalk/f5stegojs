@@ -132,12 +132,20 @@ least same performance as Eph5 and in some cases is 2x faster.</p>
       </div>
     </div>
 
-    <script src="./index_files/js/zepto.min.js"></script>
+    <!--<script src="./index_files/js/zepto.min.js"></script>--><!-- THIS WAS EXCLUDED and functions was been rewrited on PureJS -->
     <script src="./index_files/js/libs/sjcl.js"></script>
     <script src="./index_files/js/libs/prng4.js"></script>
     <script src="./index_files/js/jsf5steg.js"></script>
     <script src="./index_files/js/main2.js"></script>
 
+<script>
+	//add eventListeners on PureJS, because zepto.min.js - was been excluded...
+	document.getElementById("image-select").addEventListener('change', handleContainerSelect, false);
+	document.getElementById("data-select").addEventListener('change', handleDataSelect, false);
+	document.getElementById("do_embed").addEventListener('click', doEmbed, false);
+	document.getElementById("do_extract").addEventListener('click', doExtract, false);
+	document.getElementsByName("passwd")[0].addEventListener('change', function(){iv = [];}, false);
+</script>	
   
 
 </body></html>

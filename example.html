@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="./index_files/js/zepto.min.js"></script>
+    <!--<script src="./index_files/js/zepto.min.js"></script>--><!-- THIS WAS EXCLUDED and functions was been rewrited on PureJS -->
     <script src="./index_files/js/libs/sjcl.js"></script>
     <script src="./index_files/js/libs/prng4.js"></script>
     <script src="./index_files/js/jsf5steg.js"></script>
@@ -20,5 +20,14 @@
 
     <div id="outputdiv">
     </div>
+	
+	<script>
+		document.getElementById("image-select").addEventListener('change', handleContainerSelect, false);
+		document.getElementById("data-select").addEventListener('change', handleDataSelect, false);
+		document.getElementById("do_embed").addEventListener('click', doEmbed, false);
+		document.getElementById("do_extract").addEventListener('click', doExtract, false);
+		document.getElementsByName("passwd")[0].addEventListener('change', function(){iv = [];}, false);
+	</script>
+
   </body>
 </html>

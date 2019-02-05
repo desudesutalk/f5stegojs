@@ -6,6 +6,10 @@
  * @param {ArrayBuffers} buffer2 The second buffer.
  * @return {ArrayBuffers} The new ArrayBuffer created out of the two.
  */
+ 
+//"$" - is undefined, without JQuery or zepto.min.js,
+//so all strings with "$" - was been commented and rewrited on PureJS.
+
 var _appendBuffer = function(buffer1, buffer2) {
   var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
   tmp.set(new Uint8Array(buffer1), 0);
@@ -145,19 +149,58 @@ var handleDataSelect = function(evt) {
         };
     })(files[0]);
 
-    reader.readAsArrayBuffer(files[0]);
+    if(typeof files[0] !== 'undefined'){		//if file is not undefined
+		reader.readAsArrayBuffer(files[0]);		//read this
+	}											//try to select file, then cancel this... You'll see throw error without this condition...
+	else{//Else, show allert.
+		alert('Please select the file for embedding!');
+	}
 };
+
+	//DataURL have the limit of filesize,
+	//and browser tab is crashed
+	//onclick by download link,
+	//where is contains the base64 encoded content of big file.
+	var Max_size_to_show_dataURL = 65535; 							//bytes
+	var blob, blob_url; 													//just define variable to save the blob.
+	//function to save data as binary file, using Blob...
+	var saveData = (function () {
+		var a = document.createElement("a");
+		a.style = "display:block;";
+		return function (data, fileName) {
+			//var blob = new Blob([new Uint8Array(data)], { type: 'application/octet-stream;charset=utf-8;' }),
+			blob = new Blob([new Uint8Array(data)], { type: 'application/octet-stream;charset=utf-8;' });
+			blob_url = window.URL.createObjectURL(blob);
+			
+			a.href = blob_url;
+			a.download = fileName;
+			a.innerHTML = fileName;
+			document.getElementById('outputdiv').innerHTML += 'Here, the big file ';
+			document.getElementById('outputdiv').appendChild(a);
+			document.getElementById('outputdiv').innerHTML += '<br/>can be downloaded, using Blob - without crushing the browser tab.<br/><br/>';
+			
+			//a.click();							//download after appending
+			//window.URL.revokeObjectURL(blob_url);		//delete blob URL after downloading...
+		};
+	}());
+		//usage this function:
+	//var data = [0,1,2,3,4,5,6,7,8,9,10];	//byte array
+	//var fileName = "my-download.json";
+	//saveData(data, fileName);				//download binary file as blob... Bytes inside the file, in hex...
 
 var doEmbed = function(evt) {
 	"use strict";
-    $('#outputdiv').empty();
+    //$('#outputdiv').empty();
+	document.getElementById('outputdiv').innerHTML = '';
 
     if(iv.length == 0){
         var buffer = new ArrayBuffer(256);
         var int32View = new Int32Array(buffer);
         var Uint8View = new Uint8Array(buffer);
 
-        var key_from_pass = sjcl.misc.pbkdf2($('input[name="passwd"]').val(), $('input[name="passwd"]').val(), 1000, 256 * 8);
+        //var key_from_pass = sjcl.misc.pbkdf2($('input[name="passwd"]').val(), $('input[name="passwd"]').val(), 1000, 256 * 8);
+		var password = document.getElementsByName('passwd')[0].value;
+        var key_from_pass = sjcl.misc.pbkdf2(password, password, 1000, 256 * 8);
 
         int32View.set(key_from_pass);
 
@@ -166,12 +209,12 @@ var doEmbed = function(evt) {
         }
     }
 
-
 	var time_start = new Date().getTime();
     try{
         j.parse(container);
     } catch(e){
-        $('#outputdiv').append('<b style="color: #f00">JPEG DECODE FAILED!</b>');
+        //$('#outputdiv').append('<b style="color: #f00">JPEG DECODE FAILED!</b>');
+        document.getElementById('outputdiv').innerHTML = '<b style="color: #f00">JPEG DECODE FAILED!</b>';
         return false;
     }
     var duration = new Date().getTime() - time_start;
@@ -184,21 +227,40 @@ var doEmbed = function(evt) {
     var duration = new Date().getTime() - time_start;
 	console.log('Repack '+ duration + 'ms, size: ' + pck.length);
 	var jpegDataUri = 'data:image/jpeg;base64,' + arrayBufferDataUri(pck);
-	$('#outputdiv').append('<a href="'+jpegDataUri+'" download="repack.jpg">download repacked image</a><br/>');
-	$('#outputdiv').append('<img src="'+jpegDataUri+'">');
+	//$('#outputdiv').append('<a href="'+jpegDataUri+'" download="repack.jpg">download repacked image</a><br/>');
+	//$('#outputdiv').append('<img src="'+jpegDataUri+'">');
+	
+	saveData(pck, 'repack.jpg');
+
+	if(blob.size<Max_size_to_show_dataURL){
+		//download as dataURL link...
+		//dataURL have the limit of filesize, and when big file using
+		//browser tab crushed for big files...
+		document.getElementById('outputdiv').innerHTML += 'Download repacked image by dataURL link: <a href="'+jpegDataUri+'" download="repack.jpg">repack.jpg</a><br/>This can be crashed, for big pictures...<br/><br/>';
+	}else{
+		document.getElementById('outputdiv').innerHTML += 'downloading by dataURL - disabled.<br/>'+
+		'Filesize = '+blob.size+', Max_size_to_show_dataURL = '+Max_size_to_show_dataURL+'<br/><br/>'; //filename in "download"		
+	}
+
+	//preview
+	document.getElementById('outputdiv').innerHTML += 'Preview:<br/><img src="'+blob_url+'">';
+
 	//console.log(jpegDataUri);
 };
 
 var doExtract = function(evt) {
     "use strict";
-    $('#outputdiv').empty();
-
+    //$('#outputdiv').empty();
+	document.getElementById('outputdiv').innerHTML = '';
+	
     if(iv.length == 0){
         var buffer = new ArrayBuffer(256);
         var int32View = new Int32Array(buffer);
         var Uint8View = new Uint8Array(buffer);
 
-        var key_from_pass = sjcl.misc.pbkdf2($('input[name="passwd"]').val(), $('input[name="passwd"]').val(), 1000, 256 * 8);
+        //var key_from_pass = sjcl.misc.pbkdf2($('input[name="passwd"]').val(), $('input[name="passwd"]').val(), 1000, 256 * 8);
+        var password = document.getElementsByName('passwd')[0].value; 
+        var key_from_pass = sjcl.misc.pbkdf2(password, password, 1000, 256 * 8);
 
         int32View.set(key_from_pass);
 
@@ -212,8 +274,9 @@ var doExtract = function(evt) {
     try{
         j.parse(container);
     } catch(e){
-        $('#outputdiv').append('<b style="color: #f00">JPEG DECODE FAILED!</b>');
-        return false;
+        //$('#outputdiv').append('<b style="color: #f00">JPEG DECODE FAILED!</b>');
+        document.getElementById('outputdiv').innerHTML = '<b style="color: #f00">JPEG DECODE FAILED!</b>';
+		return false;
     }
     var duration = new Date().getTime() - time_start;
     console.log('Unpack '+ duration + 'ms');
@@ -234,9 +297,24 @@ var doExtract = function(evt) {
 
     var hidDataUri = 'data:application/octet-stream;base64,' + arrayBufferDataUri(hiddata_file_content); //using content only
 
-    $('#outputdiv').append(	'<a href="'+hidDataUri+'" download="'+extracted_filename+'">download extracted data</a><br/>'); //filename in "download"
+    //$('#outputdiv').append(	'<a href="'+hidDataUri+'" download="'+extracted_filename+'">download extracted data</a><br/>'); //filename in "download"
+	
+	//download as blob
+	saveData(hiddata_file_content, extracted_filename);
+	
+	if(blob.size<Max_size_to_show_dataURL){	
+		//download as dataURL link...
+		//dataURL have the limit of filesize, and when big file using
+		//browser tab crushed for big files...
+		document.getElementById('outputdiv').innerHTML += 'download extracted data as dataURL: <a href="'+hidDataUri+'" download="'+extracted_filename+'">'+extracted_filename+'</a><br/> This can be crashed, for large files...<br/><br/>'; //filename in "download"
+	}else{
+		document.getElementById('outputdiv').innerHTML += 'downloading by dataURL - disabled.<br/>'+
+		'Filesize = '+blob.size+', Max_size_to_show_dataURL = '+Max_size_to_show_dataURL+'<br/><br/>'; //filename in "download"		
+	}
 };
 
+/*
+//eventListeners are defined in the scripts on the pages.
 
 $(function($){
     "use strict";
@@ -249,3 +327,4 @@ $(function($){
 
     $('input[name="passwd"]').on('change', function(){iv = [];});
 });
+*/
