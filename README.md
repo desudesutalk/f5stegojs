@@ -3,7 +3,7 @@ f5stego.js
 
 Port of [f5 steganographic algorithm](https://code.google.com/p/f5-steganography/) to JavaScript for modern browsers and Node.js.
 
-[Simple online deomo](http://desudesutalk.github.io/f5stegojs/).
+[Simple online demo](http://desudesutalk.github.io/f5stegojs/).
 
 Documentation
 =============
@@ -21,15 +21,15 @@ Documentation
 Overview
 --------
 
-This library implements jpeg codec capable of reading Huffman-coded baseline and progressive jpeg files and writing Huffman-coded baseline files. Decompression is done only up to raw DCT coefficients. They are not dequantized or dezigzagged. This coefficients are then used for embedding hidden messages with f5 algorithm.
+This library implements jpeg codec capable of reading Huffman-coded baseline and progressive jpeg files and writing Huffman-coded baseline files. Decompression is done only up to raw DCT coefficients. They are not dequantized or dezigzagged. These coefficients are then used for embedding hidden messages with f5 algorithm.
 
 I decided to make this library because for my projects I need small (this lib is 15kb minified and 5.5kb if gzipped) and fast code what is easy to maintain (and review). Speed mostly considered for extraction process as often I need to process many images at once.
 
-Previously I was using [Eph5](https://github.com/Kleshni/Eph5) library. But now it looks unmaintained and I'm too lazy to get into that Emscripten things. And also Eph5 is 370kb and this Emscripten magic is not actually that performant. f5stego.js while being small has at least same performance as Eph5 and in some cases is 2x faster.
+Previously I was using [Eph5](https://github.com/Kleshni/Eph5) library. But now it looks unmaintained and I'm too lazy to get into that Emscript things. And also Eph5 is 370kb and this Emscript magic is not actually that performant. f5stego.js while being small has at least same performance as Eph5 and in some cases is 2x faster.
 
 Another interest was to make tiny extract only version. You can find it in [extra](extra/) folder. Minified version of that extractor is only 4.5kb (2kb if gzipped).
 
-Note: this implimentation is not compatible with [original code](https://code.google.com/p/f5-steganography/). It uses different shuffle algorithm and stores meatadata (used coding, data size) in a different way.
+Note: this implementation is not compatible with [original code](https://code.google.com/p/f5-steganography/). It uses different shuffle algorithm and stores metadata (used coding, data size) in a different way.
 
 :warning: Work is still in progress.
 
@@ -87,7 +87,7 @@ var message = stegger.extract(secretImage);
 
 Here `stegKey` is an array of byte values which is used for initialization of f5 shuffle. `imageArray` and `dataArray` are `Uint8Array` instances with cover jpeg image and message to embed respectively.
 
-f5stegojs waits for `Uint8Array` in its input and also returns `Uint8Array`. But in recent versions of Node `Buffer` is also instance of `Uint8Array` so buffers can be used as inputs but lib still return `Uint8Array`.
+f5stegojs waits for `Uint8Array` in its input and returns `Uint8Array`. But in recent versions of Node `Buffer` is also instance of `Uint8Array` so buffers can be used as inputs but lib still return `Uint8Array`.
 
 Also note that f5stegojs throws in case of errors, so use try-catch.
 
@@ -97,7 +97,7 @@ f5stego has also several utility methods and expose a several functions what all
 
 #### f5stego.prototype.analyze()
 
-Perform analyze of parsed jpeg for capacity. Returns object what looks like
+Perform analysis of parsed jpeg for capacity. Returns object what looks like
 
 ```js
 {
